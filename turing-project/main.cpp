@@ -1,10 +1,14 @@
 #include <iostream>
+#include <tm.hpp>
 using namespace std;
-int main(int argc, char* argv[]){
-    
-    if(argc == 1){
-        return 1;
+int main(int argc, char* argv[]) {
+    if (argc < 3) {
+        cerr << "Usage: " << argv[0] << " <input file> <output file>" << endl;
+        exit(1);
     }
-    cout<<"This is for testing"<<endl;
+    auto tm = TuringMachine::parse(argv[1]);
+
+    std::cout << tm << std::endl;
+
     return 0;
 }
