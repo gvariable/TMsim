@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -11,30 +12,45 @@ typedef Symbol TapSymbol;
 typedef Symbol InputSymbol;
 
 class Direction {
-    enum class DirectionType { LEFT, RIGHT };
+    enum class DirectionType { LEFT, RIGHT, STAY };
     DirectionType direction;
+    char ch;
 
 public:
     Direction(DirectionType direction) : direction(direction) {}
-    Direction(char direction) {
-        if (direction == 'L') {
-            this->direction = DirectionType::LEFT;
-        } else if (direction == 'R') {
-            this->direction = DirectionType::RIGHT;
+    Direction(char dir) {
+        if (dir == 'L' || dir == 'l') {
+            direction = DirectionType::LEFT;
+            ch = 'l';
+        } else if (dir == 'R' || dir == 'r') {
+            direction = DirectionType::RIGHT;
+            ch = 'r';
+        } else if (dir == '*') {
+            direction = DirectionType::STAY;
+            ch = '*';
+        } else {
+            throw std::invalid_argument("Invalid direction");
         }
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Direction& dir) {
+        os << std::string(1, dir.ch);
+        return os;
     }
 };
 
-typedef std::map<std::pair<State, TapSymbol>,
-                 std::tuple<State, TapSymbol, Direction>>
-    Transitions;
+typedef std::map<
+    std::pair<State, std::vector<TapSymbol>>,
+    std::tuple<State, std::vector<TapSymbol>, std::vector<Direction>>>
+    Transition;
 
 class TuringMachine {
 public:
     // the number of tape
     unsigned int N;
-    // transition functions: (ostate, osymbol) -> (nstate, nsymbol, )
-    Transitions transitions;
+    // transition functions: (ostate, N*osymbol) -> (nstate, N*nsymbol,
+    // N*direction)
+    Transition transitions;
     // input symbol set
     std::vector<InputSymbol> isyms;
     // tape symbol set
@@ -53,6 +69,8 @@ public:
     std::vector<State> fstates;
 
     static TuringMachine parse(std::string path);
+
+    void run(std::string input);
 
     friend std::ostream& operator<<(std::ostream& os, const TuringMachine& tm) {
         auto printStringSet = [&os](std::string name,
@@ -90,6 +108,27 @@ public:
         os << std::string("Number of tapes: ") << std::to_string(tm.N)
            << std::string("\n");
 
+        os << std::string("Transition functions:\n");
+        for (auto it = tm.transitions.begin(); it != tm.transitions.end();
+             ++it) {
+            os << std::string("(") << it->first.first << std::string(", ");
+            for (auto it2 = it->first.second.begin();
+                 it2 != it->first.second.end(); ++it2) {
+                os << std::string(1, *it2);
+            }
+            os << std::string(") -> (") << std::get<0>(it->second)
+               << std::string(", ");
+            for (auto it2 = std::get<1>(it->second).begin();
+                 it2 != std::get<1>(it->second).end(); ++it2) {
+                os << std::string(1, *it2);
+            }
+            os << std::string(", ");
+            for (auto it2 = std::get<2>(it->second).begin();
+                 it2 != std::get<2>(it->second).end(); ++it2) {
+                os << *it2;
+            }
+            os << std::string(")\n");
+        }
         return os;
     }
 };

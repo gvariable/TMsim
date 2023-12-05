@@ -10,8 +10,7 @@
 template <typename T>
 std::vector<T> splitString(const std::string& str, char delim = ',') {
     std::vector<T> result;
-    std::stringstream ss(
-        str.substr(str.find('{') + 1, str.find("}") - str.find('{') - 1));
+    std::stringstream ss(str);
     std::string item;
 
     while (std::getline(ss, item, delim)) {
@@ -23,8 +22,7 @@ std::vector<T> splitString(const std::string& str, char delim = ',') {
 template <>
 std::vector<char> splitString(const std::string& str, char delim) {
     std::vector<char> result;
-    std::stringstream ss(
-        str.substr(str.find('{') + 1, str.find("}") - str.find('{') - 1));
+    std::stringstream ss(str);
     std::string item;
 
     while (std::getline(ss, item, delim)) {
@@ -82,13 +80,17 @@ TuringMachine TuringMachine::parse(std::string path) {
         line = trim(line);
 
         if (isPrefix(line, "#Q")) {
-            tm.states = splitString<State>(line);
+            tm.states = splitString<State>(line.substr(
+                line.find('{') + 1, line.find("}") - line.find('{') - 1));
         } else if (isPrefix(line, "#S")) {
-            tm.isyms = splitString<InputSymbol>(line);
+            tm.isyms = splitString<InputSymbol>(line.substr(
+                line.find('{') + 1, line.find("}") - line.find('{') - 1));
         } else if (isPrefix(line, "#G")) {
-            tm.tsyms = splitString<TapSymbol>(line);
+            tm.tsyms = splitString<TapSymbol>(line.substr(
+                line.find('{') + 1, line.find("}") - line.find('{') - 1));
         } else if (isPrefix(line, "#F")) {
-            tm.fstates = splitString<State>(line);
+            tm.fstates = splitString<State>(line.substr(
+                line.find('{') + 1, line.find("}") - line.find('{') - 1));
         } else if (isPrefix(line, "#q0")) {
             State istate = line.substr(line.find("=") + 1);
             istate = trim(istate);
@@ -108,6 +110,94 @@ TuringMachine TuringMachine::parse(std::string path) {
             assert(N > 0);
             tm.N = N;
         }
+
+        // transition function
+        else {
+            std::vector<std::string> tokens =
+                splitString<std::string>(line, ' ');
+            assert(tokens.size() == 5);
+            State ostate = tokens[0];
+            State nstate = tokens[4];
+
+            assert(contains(tm.states, ostate));
+            assert(contains(tm.states, nstate));
+
+            std::vector<TapSymbol> osymbols(tokens[1].begin(), tokens[1].end());
+            std::vector<TapSymbol> nsymbols(tokens[2].begin(), tokens[2].end());
+            std::vector<Direction> dirs(tokens[3].begin(), tokens[3].end());
+
+            // validate symbols
+            for (int i = 0; i < tm.N; ++i) {
+                TapSymbol osymbol = osymbols[i];
+                TapSymbol nsymbol = nsymbols[i];
+
+                assert(contains(tm.tsyms, osymbol) || osymbol == '*');
+                assert(contains(tm.tsyms, nsymbol) || osymbol == '*');
+            }
+
+            tm.transitions.insert({
+                std::make_pair(ostate, osymbols),
+                std::make_tuple(nstate, nsymbols, dirs),
+            });
+        }
     }
     return tm;
+}
+
+void TuringMachine::run(std::string input) {
+    // initialize tapes and heads
+    tapes.resize(N);
+    for (int i = 0; i < N; ++i) {
+        tapes[i].push_back(blank);
+    }
+    for (auto c : input) {
+        tapes[0].push_back(c);
+    }
+    for (int i = 0; i < N; ++i) {
+        tapes[i].push_back(blank);
+    }
+
+    // initialize heads
+    heads.resize(N);
+    for (int i = 0; i < N; ++i) {
+        heads[i] = 1;
+    }
+
+    // initialize state
+    State state = istate;
+
+    // // run
+    // while (!contains(fstates, state)) {
+    //     for (int i = 0; i < N; ++i) {
+    //         TapSymbol osymbol = tapes[i][heads[i]];
+    //         auto it = transitions[i].find(std::make_pair(state, osymbol));
+    //         assert(it != transitions[i].end());
+    //         State nstate = std::get<0>(it->second);
+    //         TapSymbol nsymbol = std::get<1>(it->second);
+    //         Direction dir = std::get<2>(it->second);
+
+    //         tapes[i][heads[i]] = nsymbol;
+    //         if (dir == ) {
+    //             heads[i] -= 1;
+    //             if (heads[i] == -1) {
+    //                 tapes[i].insert(tapes[i].begin(), blank);
+    //                 heads[i] = 0;
+    //             }
+    //         } else if (dir == Direction::RIGHT) {
+    //             heads[i] += 1;
+    //             if (heads[i] == tapes[i].size()) {
+    //                 tapes[i].push_back(blank);
+    //             }
+    //         }
+    //         state = nstate;
+    //     }
+    // }
+
+    // // print result
+    // for (int i = 0; i < N; ++i) {
+    //     for (auto c : tapes[i]) {
+    //         std::cout << c;
+    //     }
+    //     std::cout << std::endl;
+    // }
 }
