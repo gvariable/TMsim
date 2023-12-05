@@ -144,60 +144,76 @@ TuringMachine TuringMachine::parse(std::string path) {
     return tm;
 }
 
-void TuringMachine::run(std::string input) {
-    // initialize tapes and heads
-    tapes.resize(N);
-    for (int i = 0; i < N; ++i) {
-        tapes[i].push_back(blank);
-    }
-    for (auto c : input) {
-        tapes[0].push_back(c);
-    }
-    for (int i = 0; i < N; ++i) {
-        tapes[i].push_back(blank);
-    }
-
-    // initialize heads
-    heads.resize(N);
-    for (int i = 0; i < N; ++i) {
-        heads[i] = 1;
-    }
-
+void TuringMachine::init(std::string input) {
     // initialize state
-    State state = istate;
+    state = istate;
 
-    // // run
-    // while (!contains(fstates, state)) {
-    //     for (int i = 0; i < N; ++i) {
-    //         TapSymbol osymbol = tapes[i][heads[i]];
-    //         auto it = transitions[i].find(std::make_pair(state, osymbol));
-    //         assert(it != transitions[i].end());
-    //         State nstate = std::get<0>(it->second);
-    //         TapSymbol nsymbol = std::get<1>(it->second);
-    //         Direction dir = std::get<2>(it->second);
+    // initialize tapes and heads
+    tapes.clear();
+    heads.clear();
+    tapes.resize(N);
+    heads.resize(N);
 
-    //         tapes[i][heads[i]] = nsymbol;
-    //         if (dir == ) {
-    //             heads[i] -= 1;
-    //             if (heads[i] == -1) {
-    //                 tapes[i].insert(tapes[i].begin(), blank);
-    //                 heads[i] = 0;
-    //             }
-    //         } else if (dir == Direction::RIGHT) {
-    //             heads[i] += 1;
-    //             if (heads[i] == tapes[i].size()) {
-    //                 tapes[i].push_back(blank);
-    //             }
-    //         }
-    //         state = nstate;
-    //     }
-    // }
+    std::vector<InputSymbol> inputSymbols(input.begin(), input.end());
+    for (auto& symbol : inputSymbols) {
+        if (!contains(isyms, symbol)) {
+            std::cerr << "illegal input string" << std::endl;
+            exit(1);
+        }
+    }
 
-    // // print result
-    // for (int i = 0; i < N; ++i) {
-    //     for (auto c : tapes[i]) {
-    //         std::cout << c;
-    //     }
-    //     std::cout << std::endl;
-    // }
+    tapes[0].insert(tapes[0].end(), inputSymbols.begin(), inputSymbols.end());
+    heads[0] = 0;
+
+    for (int i = 1; i < N; ++i) {
+        tapes[i].push_back(blank);
+        heads.push_back(0);
+    }
 }
+
+bool TuringMachine::isAccept() { return isaccpet; }
+
+void TuringMachine::id() {
+    std::cout << "Step: " << stepcnt << std::endl;
+    std::cout << "State: " << state << std::endl;
+
+    std::cout << "Acc: " << (isAccept() ? "Yes" : "No") << std::endl;
+
+    for (int i = 0; i < N; ++i) {
+        std::cout << "Tape" << i << ": ";
+        for (int j = 0; j < tapes[i].size(); ++j) {
+            std::cout << tapes[i][j];
+            if (j != tapes[i].size()) {
+                std::cout << " ";
+            }
+        }
+        std::cout << std::endl;
+
+        std::cout << "Head" << i << ": ";
+        for (int j = 0; j < heads[i] - 1; ++j) {
+            std::cout << "  ";
+        }
+        std::cout << "^" << std::endl;
+    }
+    std::cout << "----------------------------------------" << std::endl;
+}
+
+bool TuringMachine::step() {
+    std::vector<TapSymbol> osymbols;
+    for (int i = 0; i < N; ++i) {
+        osymbols.push_back(tapes[i][heads[i]]);
+    }
+
+    auto [nstate, nsymbols, dirs] = transitions.at({state, osymbols});
+    state = nstate;
+
+    if (contains(fstates, state)) {
+        isaccpet = true;
+    }
+
+    
+
+    return true;
+}
+
+void TuringMachine::run(std::string input) { init(input); }

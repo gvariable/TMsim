@@ -63,10 +63,14 @@ public:
     std::vector<State> states;
     // initial state
     State istate;
+    // current state
+    State state;
     // blank symbol
     TapSymbol blank;
     // final state set
     std::vector<State> fstates;
+    bool isaccpet = false;
+    unsigned long long stepcnt = 0;
 
     static TuringMachine parse(std::string path);
 
@@ -131,4 +135,10 @@ public:
         }
         return os;
     }
+
+    void init(std::string input);
+    bool isAccept();
+    // return true if the machine is still running
+    bool step();
+    void id();
 };
