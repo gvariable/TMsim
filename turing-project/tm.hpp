@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -39,18 +40,58 @@ public:
     }
 };
 
-typedef std::map<
-    std::pair<State, std::vector<TapSymbol>>,
-    std::tuple<State, std::vector<TapSymbol>, std::vector<Direction>>>
-    Transition;
+class TransitionState {
+public:
+    State ostate;
+    std::vector<TapSymbol> osymbols;
+    State nstate;
+    std::vector<TapSymbol> nsymbols;
+    std::vector<Direction> dirs;
+
+    TransitionState(State ostate, std::vector<TapSymbol> osymbols, State nstate,
+                    std::vector<TapSymbol> nsymbols,
+                    std::vector<Direction> dirs)
+        : ostate(ostate),
+          osymbols(osymbols),
+          nstate(nstate),
+          nsymbols(nsymbols),
+          dirs(dirs) {}
+
+    friend std::ostream& operator<<(std::ostream& os,
+                                    const TransitionState& transition) {
+        os << "(" << transition.ostate << ", ";
+        for (auto it = transition.osymbols.begin();
+             it != transition.osymbols.end(); ++it) {
+            os << *it;
+        }
+        os << ", " << transition.nstate << ", ";
+        for (auto it = transition.nsymbols.begin();
+             it != transition.nsymbols.end(); ++it) {
+            os << *it;
+        }
+        os << ", ";
+        for (auto it = transition.dirs.begin(); it != transition.dirs.end();
+             ++it) {
+            os << *it;
+        }
+        os << ")";
+
+        return os;
+    }
+};
+
+typedef std::map<std::pair<State, std::vector<TapSymbol>>, TransitionState>
+    TransitionMap;
 
 class TuringMachine {
 public:
     // the number of tape
     unsigned int N;
-    // transition functions: (ostate, N*osymbol) -> (nstate, N*nsymbol,
-    // N*direction)
-    Transition transitions;
+    // transition map with wildcard : (ostate, N*osymbol) -> (nstate,
+    // N*nsymbol, N*direction)
+    TransitionMap compactTransitionMap;
+    // flat transition map
+    TransitionMap transitionMap;
     // input symbol set
     std::vector<InputSymbol> isyms;
     // tape symbol set
@@ -79,26 +120,26 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const TuringMachine& tm) {
         auto printStringSet = [&os](std::string name,
                                     const std::vector<std::string>& set) {
-            os << name << std::string(": {");
+            os << name << ": {";
             for (auto it = set.begin(); it != set.end(); ++it) {
                 os << *it;
                 if (it != set.end()) {
-                    os << std::string(", ");
+                    os << ", ";
                 }
             }
-            os << std::string("}\n");
+            os << "}" << std::endl;
         };
 
         auto printCharSet = [&os](std::string name,
                                   const std::vector<char>& set) {
-            os << name << std::string(": {");
+            os << name << ": {";
             for (auto it = set.begin(); it != set.end(); ++it) {
-                os << std::string(1, *it);
+                os << *it;
                 if (it != set.end()) {
-                    os << std::string(", ");
+                    os << ", ";
                 }
             }
-            os << std::string("}\n");
+            os << "}" << std::endl;
         };
 
         printStringSet("States", tm.states);
@@ -106,33 +147,20 @@ public:
         printCharSet("Input symbols", tm.isyms);
         printCharSet("Tape symbols", tm.tsyms);
 
-        os << std::string("Initial state: ") << tm.istate << std::string("\n");
-        os << std::string("Blank symbol: ") << std::string(1, tm.blank)
-           << std::string("\n");
-        os << std::string("Number of tapes: ") << std::to_string(tm.N)
-           << std::string("\n");
-
-        os << std::string("Transition functions:\n");
-        for (auto it = tm.transitions.begin(); it != tm.transitions.end();
-             ++it) {
-            os << std::string("(") << it->first.first << std::string(", ");
+        os << "Initial state: " << tm.istate << std::endl;
+        os << "Blank symbol: " << tm.blank << std::endl;
+        os << "Number of tapes: " << tm.N << std::endl;
+        os << "Transition functions:" << std::endl;
+        for (auto it = tm.compactTransitionMap.begin();
+             it != tm.compactTransitionMap.end(); ++it) {
+            os << "(" << it->first.first << ", ";
             for (auto it2 = it->first.second.begin();
                  it2 != it->first.second.end(); ++it2) {
-                os << std::string(1, *it2);
-            }
-            os << std::string(") -> (") << std::get<0>(it->second)
-               << std::string(", ");
-            for (auto it2 = std::get<1>(it->second).begin();
-                 it2 != std::get<1>(it->second).end(); ++it2) {
-                os << std::string(1, *it2);
-            }
-            os << std::string(", ");
-            for (auto it2 = std::get<2>(it->second).begin();
-                 it2 != std::get<2>(it->second).end(); ++it2) {
                 os << *it2;
             }
-            os << std::string(")\n");
+            os << ") -> " << it->second << std::endl;
         }
+
         return os;
     }
 

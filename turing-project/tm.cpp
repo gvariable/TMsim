@@ -132,12 +132,19 @@ TuringMachine TuringMachine::parse(std::string path) {
                 TapSymbol nsymbol = nsymbols[i];
 
                 assert(contains(tm.tsyms, osymbol) || osymbol == '*');
-                assert(contains(tm.tsyms, nsymbol) || osymbol == '*');
+                assert(contains(tm.tsyms, nsymbol) || nsymbol == '*');
+
+                // unsupport transition
+                if (osymbol != '*' && nsymbol == '*') {
+                    std::cerr << "Unsupport transition rule: " << line
+                              << std::endl;
+                    exit(1);
+                }
             }
 
-            tm.transitions.insert({
+            tm.compactTransitionMap.insert({
                 std::make_pair(ostate, osymbols),
-                std::make_tuple(nstate, nsymbols, dirs),
+                TransitionState(ostate, osymbols, nstate, nsymbols, dirs),
             });
         }
     }
@@ -204,16 +211,22 @@ bool TuringMachine::step() {
         osymbols.push_back(tapes[i][heads[i]]);
     }
 
-    auto [nstate, nsymbols, dirs] = transitions.at({state, osymbols});
-    state = nstate;
+    // auto [nstate, nsymbols, dirs] = compactTransitionMap.at({state,
+    // osymbols});
 
-    if (contains(fstates, state)) {
-        isaccpet = true;
-    }
+    // state = nstate;
 
-    
+    // for (int i = 0; i < osymbols.size(); ++i) {
+    // }
+
+    // if (contains(fstates, nstate)) {
+    //     isaccpet = true;
+    // }
 
     return true;
 }
 
 void TuringMachine::run(std::string input) { init(input); }
+
+// flat transition function
+void flat(TransitionMap& transitionMap) {}
