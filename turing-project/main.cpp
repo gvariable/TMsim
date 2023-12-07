@@ -9,6 +9,7 @@ int main(int argc, char* argv[]) {
     auto tm = TuringMachine::parse(argv[1]);
 
     std::cout << tm << std::endl;
+    tm.run(argv[2]);
 
     return 0;
 }

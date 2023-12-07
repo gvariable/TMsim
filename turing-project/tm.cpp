@@ -246,32 +246,37 @@ void TuringMachine::id() {
 }
 
 bool TuringMachine::step() {
-    bool changed = false;
+    bool ishalt = false;
+
     std::vector<TapSymbol> osymbols;
     for (int i = 0; i < N; ++i) {
         osymbols.push_back(tapes[i].current());
     }
 
-    auto transitionState = transitionMap.at({state, osymbols});
-
-    for (int i = 0; i < N; ++i) {
-        changed |=
+    // halt or not
+    if (transitionMap.find({state, osymbols}) == transitionMap.end()) {
+        ishalt = true;
+    } else {
+        auto transitionState = transitionMap.at({state, osymbols});
+        // apply transition rule to tape and head
+        for (int i = 0; i < N; ++i) {
             tapes[i].move(transitionState.dirs[i], transitionState.nsymbols[i]);
+        }
+        // update state
+        state = transitionState.nstate;
+
+        if (contains(fstates, transitionState.nstate)) {
+            isaccpet = true;
+        }
+        stepcnt++;
     }
-    state = transitionState.nstate;
 
-    if (contains(fstates, transitionState.nstate)) {
-        isaccpet = true;
-    }
-
-    stepcnt++;
-
-    return changed;
+    return ishalt;
 }
 
 void TuringMachine::run(std::string input) {
     init(input);
-    while (step()) {
+    while (!step()) {
+        id();
     }
-    id();
 }
