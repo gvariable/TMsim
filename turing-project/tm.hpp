@@ -13,11 +13,11 @@ typedef Symbol TapSymbol;
 typedef Symbol InputSymbol;
 
 class Direction {
+public:
     enum class DirectionType { LEFT, RIGHT, STAY };
     DirectionType direction;
     char ch;
 
-public:
     Direction(DirectionType direction) : direction(direction) {}
     Direction(char dir) {
         if (dir == 'L' || dir == 'l') {
@@ -83,12 +83,54 @@ public:
 typedef std::map<std::pair<State, std::vector<TapSymbol>>, TransitionState>
     TransitionMap;
 
+class Tape {
+public:
+    std::vector<TapSymbol> tape;
+    unsigned int head;
+    TapSymbol blank;
+
+    // move the head to the direction and write the symbol, return true if the
+    // tape is changed
+    bool move(Direction dir, TapSymbol nsymbol) {
+        bool changed = false;
+        if (nsymbol != current()) {
+            tape[head] = nsymbol;
+            changed |= true;
+        }
+
+        switch (dir.direction) {
+            case Direction::DirectionType::LEFT: {
+                changed |= true;
+                if (head == 0) {
+                    tape.insert(tape.begin(), blank);
+                } else {
+                    --head;
+                }
+                break;
+            }
+            case Direction::DirectionType::RIGHT: {
+                changed |= true;
+                ++head;
+                if (head == tape.size()) {
+                    tape.push_back(blank);
+                }
+                break;
+            }
+            case Direction::DirectionType::STAY:
+                break;
+        }
+        return changed;
+    }
+
+    TapSymbol current() { return tape[head]; }
+};
+
 class TuringMachine {
 public:
     // the number of tape
     unsigned int N;
-    // transition map with wildcard : (ostate, N*osymbol) -> (nstate,
-    // N*nsymbol, N*direction)
+    // transition map with wildcard : (ostate, N*osymbol) ->
+    // (nstate, N*nsymbol, N*direction)
     TransitionMap compactTransitionMap;
     // flat transition map
     TransitionMap transitionMap;
@@ -97,9 +139,7 @@ public:
     // tape symbol set
     std::vector<TapSymbol> tsyms;
     // multiple tapes
-    std::vector<std::vector<Symbol>> tapes;
-    // multiple heads
-    std::vector<int> heads;
+    std::vector<Tape> tapes;
     // state set
     std::vector<State> states;
     // initial state
@@ -123,7 +163,7 @@ public:
             os << name << ": {";
             for (auto it = set.begin(); it != set.end(); ++it) {
                 os << *it;
-                if (it != set.end()) {
+                if (it != set.end() - 1) {
                     os << ", ";
                 }
             }
@@ -135,7 +175,7 @@ public:
             os << name << ": {";
             for (auto it = set.begin(); it != set.end(); ++it) {
                 os << *it;
-                if (it != set.end()) {
+                if (it != set.end() - 1) {
                     os << ", ";
                 }
             }

@@ -194,11 +194,9 @@ void TuringMachine::init(std::string input) {
     // initialize state
     state = istate;
 
-    // initialize tapes and heads
+    // initialize tapes
     tapes.clear();
-    heads.clear();
     tapes.resize(N);
-    heads.resize(N);
 
     std::vector<InputSymbol> inputSymbols(input.begin(), input.end());
     for (auto& symbol : inputSymbols) {
@@ -208,12 +206,15 @@ void TuringMachine::init(std::string input) {
         }
     }
 
-    tapes[0].insert(tapes[0].end(), inputSymbols.begin(), inputSymbols.end());
-    heads[0] = 0;
+    tapes[0].tape.insert(tapes[0].tape.end(), inputSymbols.begin(),
+                         inputSymbols.end());
+    tapes[0].head = 0;
+    tapes[0].blank = blank;
 
     for (int i = 1; i < N; ++i) {
-        tapes[i].push_back(blank);
-        heads.push_back(0);
+        tapes[i].tape.push_back(blank);
+        tapes[i].head = 0;
+        tapes[i].blank = blank;
     }
 }
 
@@ -227,17 +228,17 @@ void TuringMachine::id() {
 
     for (int i = 0; i < N; ++i) {
         std::cout << "Tape" << i << ": ";
-        for (int j = 0; j < tapes[i].size(); ++j) {
-            std::cout << tapes[i][j];
-            if (j != tapes[i].size()) {
+        for (int j = 0; j < tapes[i].tape.size(); ++j) {
+            std::cout << tapes[i].tape[j];
+            if (j != tapes[i].tape.size()) {
                 std::cout << " ";
             }
         }
         std::cout << std::endl;
 
         std::cout << "Head" << i << ": ";
-        for (int j = 0; j < heads[i] - 1; ++j) {
-            std::cout << "  ";
+        for (int j = 0; j < 2 * tapes[i].head; ++j) {
+            std::cout << " ";
         }
         std::cout << "^" << std::endl;
     }
@@ -245,24 +246,32 @@ void TuringMachine::id() {
 }
 
 bool TuringMachine::step() {
+    bool changed = false;
     std::vector<TapSymbol> osymbols;
     for (int i = 0; i < N; ++i) {
-        osymbols.push_back(tapes[i][heads[i]]);
+        osymbols.push_back(tapes[i].current());
     }
 
-    // auto [nstate, nsymbols, dirs] = compactTransitionMap.at({state,
-    // osymbols});
+    auto transitionState = transitionMap.at({state, osymbols});
 
-    // state = nstate;
+    for (int i = 0; i < N; ++i) {
+        changed |=
+            tapes[i].move(transitionState.dirs[i], transitionState.nsymbols[i]);
+    }
+    state = transitionState.nstate;
 
-    // for (int i = 0; i < osymbols.size(); ++i) {
-    // }
+    if (contains(fstates, transitionState.nstate)) {
+        isaccpet = true;
+    }
 
-    // if (contains(fstates, nstate)) {
-    //     isaccpet = true;
-    // }
+    stepcnt++;
 
-    return true;
+    return changed;
 }
 
-void TuringMachine::run(std::string input) { init(input); }
+void TuringMachine::run(std::string input) {
+    init(input);
+    while (step()) {
+    }
+    id();
+}
