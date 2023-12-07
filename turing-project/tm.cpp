@@ -7,6 +7,8 @@
 #include <string>
 #include <tm.hpp>
 
+/******************************Help functions
+ * begin******************************/
 template <typename T>
 std::vector<T> splitString(const std::string& str, char delim = ',') {
     std::vector<T> result;
@@ -35,6 +37,37 @@ template <typename T>
 bool contains(const std::vector<T>& vec, const T& item) {
     return std::find(vec.begin(), vec.end(), item) != vec.end();
 }
+
+// flat transition function
+void flat(TransitionMap& transitionMap, const TransitionState& transition,
+          const std::vector<TapSymbol>& tsyms, TapSymbol blank) {
+    auto wildcardIt =
+        std::find(transition.osymbols.begin(), transition.osymbols.end(), '*');
+
+    if (wildcardIt != transition.osymbols.end()) {
+        size_t pos = wildcardIt - transition.osymbols.begin();
+        TransitionState ntransition = transition;
+
+        for (int i = 0; i < tsyms.size(); ++i) {
+            // skip blank symbol
+            if (tsyms[i] == blank) {
+                continue;
+            }
+            ntransition.osymbols[pos] = tsyms[i];
+            // * -> * keep symbol unchanged
+            if (ntransition.nsymbols[pos] == '*') {
+                ntransition.nsymbols[pos] = tsyms[i];
+            }
+            flat(transitionMap, transition, tsyms, blank);
+        }
+    } else {
+        transitionMap.insert(
+            {std::make_pair(transition.ostate, transition.osymbols),
+             transition});
+    }
+    return;
+}
+/******************************Help functions end******************************/
 
 TuringMachine TuringMachine::parse(std::string path) {
     std::ifstream ifile(path);
@@ -148,6 +181,12 @@ TuringMachine TuringMachine::parse(std::string path) {
             });
         }
     }
+
+    // get the actual transition map
+    for (auto& [_, value] : tm.compactTransitionMap) {
+        flat(tm.transitionMap, value, tm.tsyms, tm.blank);
+    }
+
     return tm;
 }
 
@@ -227,6 +266,3 @@ bool TuringMachine::step() {
 }
 
 void TuringMachine::run(std::string input) { init(input); }
-
-// flat transition function
-void flat(TransitionMap& transitionMap) {}

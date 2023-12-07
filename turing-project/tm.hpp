@@ -151,8 +151,8 @@ public:
         os << "Blank symbol: " << tm.blank << std::endl;
         os << "Number of tapes: " << tm.N << std::endl;
         os << "Transition functions:" << std::endl;
-        for (auto it = tm.compactTransitionMap.begin();
-             it != tm.compactTransitionMap.end(); ++it) {
+        for (auto it = tm.transitionMap.begin(); it != tm.transitionMap.end();
+             ++it) {
             os << "(" << it->first.first << ", ";
             for (auto it2 = it->first.second.begin();
                  it2 != it->first.second.end(); ++it2) {
