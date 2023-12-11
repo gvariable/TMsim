@@ -123,6 +123,20 @@ public:
     }
 
     TapSymbol current() { return tape[head]; }
+
+    friend std::ostream& operator<<(std::ostream& os, const Tape& tape) {
+        for (int i = 0; i < tape.tape.size(); ++i) {
+            if (tape.tape[i] == tape.blank && i != tape.head) {
+                continue;
+            }
+
+            os << tape.tape[i];
+            if (i != tape.tape.size() - 1) {
+                os << " ";
+            }
+        }
+        return os;
+    }
 };
 
 class TuringMachine {

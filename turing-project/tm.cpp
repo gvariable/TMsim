@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <sstream>
@@ -221,28 +222,58 @@ void TuringMachine::init(std::string input) {
 bool TuringMachine::isAccept() { return isaccpet; }
 
 void TuringMachine::id() {
-    std::cout << "Step: " << stepcnt << std::endl;
-    std::cout << "State: " << state << std::endl;
+    static int w = ("Index" + std::to_string(N - 1)).size();
+    std::cout << std::left << std::setw(w) << "Step"
+              << " : " << stepcnt << std::endl;
+    std::cout << std::left << std::setw(w) << "State"
+              << " : " << state << std::endl;
 
-    std::cout << "Acc: " << (isAccept() ? "Yes" : "No") << std::endl;
+    std::cout << std::left << std::setw(w) << "Acc"
+              << " : " << (isAccept() ? "Yes" : "No") << std::endl;
 
     for (int i = 0; i < N; ++i) {
-        std::cout << "Tape" << i << ": ";
-        for (int j = 0; j < tapes[i].tape.size(); ++j) {
-            std::cout << tapes[i].tape[j];
-            if (j != tapes[i].tape.size()) {
-                std::cout << " ";
+        std::stringstream index, tape, head;
+        index << std::left << std::setw(w) << "Index" + std::to_string(i)
+              << " : ";
+        tape << std::left << std::setw(w) << "Tape" + std::to_string(i)
+             << " : ";
+        head << std::left << std::setw(w) << "Head" + std::to_string(i)
+             << " : ";
+
+        int start = 0, size = 0;
+        while (tapes[i].tape[start] == tapes[i].blank &&
+               start != tapes[i].head) {
+            ++start;
+        }
+
+        for (int j = start; j < tapes[i].tape.size(); ++j) {
+            if (tapes[i].tape[j] == tapes[i].blank && j != tapes[i].head) {
+                continue;
+            }
+            ++size;
+        }
+
+        for (int j = start; j < start + size; ++j) {
+            std::string num = std::to_string(j);
+            index << std::left << std::setw(num.size()) << num;
+            tape << std::left << std::setw(num.size()) << tapes[i].tape[j];
+
+            if (j != start + size - 1) {
+                index << " ";
+                tape << " ";
+            }
+            if (j == tapes[i].head) {
+                head << "^";
+            } else {
+                head << std::left << std::setw(num.size()) << " ";
             }
         }
-        std::cout << std::endl;
 
-        std::cout << "Head" << i << ": ";
-        for (int j = 0; j < 2 * tapes[i].head; ++j) {
-            std::cout << " ";
-        }
-        std::cout << "^" << std::endl;
+        std::cout << index.str() << std::endl;
+        std::cout << tape.str() << std::endl;
+        std::cout << head.str() << std::endl;
     }
-    std::cout << "----------------------------------------" << std::endl;
+    std::cout << "---------------------------------------------" << std::endl;
 }
 
 bool TuringMachine::step() {
@@ -276,7 +307,16 @@ bool TuringMachine::step() {
 
 void TuringMachine::run(std::string input) {
     init(input);
-    while (!step()) {
+
+    do {
         id();
+    } while (!step());
+
+    if (isaccpet) {
+        std::cout << "ACCEPTED" << std::endl;
+    } else {
+        std::cout << "UNACCEPTED" << std::endl;
     }
+    std::cout << "Result: " << tapes[0] << std::endl;
+    std::cout << "==================== END ====================";
 }
