@@ -262,10 +262,11 @@ void TuringMachine::id() {
                 index << " ";
                 tape << " ";
             }
-            if (j == tapes[i].head) {
-                head << "^";
-            } else {
-                head << std::left << std::setw(num.size()) << " ";
+            if (j < tapes[i].head) {
+                head << std::left << std::setw(num.size()) << " " << " ";
+
+            } else if (j == tapes[i].head) {
+                head << std::left << std::setw(num.size()) << "^";
             }
         }
 

@@ -126,13 +126,8 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Tape& tape) {
         for (int i = 0; i < tape.tape.size(); ++i) {
-            if (tape.tape[i] == tape.blank && i != tape.head) {
-                continue;
-            }
-
-            os << tape.tape[i];
-            if (i != tape.tape.size() - 1) {
-                os << " ";
+            if (tape.tape[i] != tape.blank) {
+                os << tape.tape[i];
             }
         }
         return os;
