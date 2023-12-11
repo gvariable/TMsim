@@ -47,19 +47,19 @@ void flat(TransitionMap& transitionMap, const TransitionState& transition,
 
     if (wildcardIt != transition.osymbols.end()) {
         size_t pos = wildcardIt - transition.osymbols.begin();
-        TransitionState ntransition = transition;
 
         for (int i = 0; i < tsyms.size(); ++i) {
             // skip blank symbol
             if (tsyms[i] == blank) {
                 continue;
             }
+            TransitionState ntransition = transition;
             ntransition.osymbols[pos] = tsyms[i];
             // * -> * keep symbol unchanged
             if (ntransition.nsymbols[pos] == '*') {
                 ntransition.nsymbols[pos] = tsyms[i];
             }
-            flat(transitionMap, transition, tsyms, blank);
+            flat(transitionMap, ntransition, tsyms, blank);
         }
     } else {
         transitionMap.insert(
