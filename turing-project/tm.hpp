@@ -86,6 +86,8 @@ typedef std::map<std::pair<State, std::vector<TapSymbol>>, TransitionState>
 class Tape {
 public:
     std::vector<TapSymbol> tape;
+    // the position of logical index 0
+    unsigned int origin = 0;
     unsigned int head;
     TapSymbol blank;
 
@@ -102,6 +104,7 @@ public:
             case Direction::DirectionType::LEFT: {
                 changed |= true;
                 if (head == 0) {
+                    ++origin;
                     tape.insert(tape.begin(), blank);
                 } else {
                     --head;

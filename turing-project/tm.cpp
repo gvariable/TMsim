@@ -254,7 +254,8 @@ void TuringMachine::id() {
         }
 
         for (int j = start; j < start + size; ++j) {
-            std::string num = std::to_string(j);
+            int idx = abs((int)tapes[i].origin - j);
+            std::string num = std::to_string(idx);
             index << std::left << std::setw(num.size()) << num;
             tape << std::left << std::setw(num.size()) << tapes[i].tape[j];
 
@@ -263,7 +264,8 @@ void TuringMachine::id() {
                 tape << " ";
             }
             if (j < tapes[i].head) {
-                head << std::left << std::setw(num.size()) << " " << " ";
+                head << std::left << std::setw(num.size()) << " "
+                     << " ";
 
             } else if (j == tapes[i].head) {
                 head << std::left << std::setw(num.size()) << "^";
