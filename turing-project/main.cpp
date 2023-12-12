@@ -41,6 +41,16 @@ int main(int argc, char* argv[]) {
         exit(0);
     }
 
+    if (parser.tm.empty()) {
+        cerr << "no tm file" << endl;
+        exit(1);
+    }
+
+    if (parser.input.empty()) {
+        cerr << "no input string" << endl;
+        exit(1);
+    }
+
     auto tm = TuringMachine::parse(parser.tm);
 
     // std::cout << tm << std::endl;

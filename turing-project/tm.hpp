@@ -129,10 +129,22 @@ public:
     TapSymbol current() { return tape[head]; }
 
     friend std::ostream& operator<<(std::ostream& os, const Tape& tape) {
+        int start = 0, end = 0;
         for (int i = 0; i < tape.tape.size(); ++i) {
             if (tape.tape[i] != tape.blank) {
-                os << tape.tape[i];
+                start = i;
+                break;
             }
+        }
+        for (int i = tape.tape.size() - 1; i >= 0; --i) {
+            if (tape.tape[i] != tape.blank) {
+                end = i;
+                break;
+            }
+        }
+
+        for (int i = start; i <= end; ++i) {
+            os << tape.tape[i];
         }
         return os;
     }
