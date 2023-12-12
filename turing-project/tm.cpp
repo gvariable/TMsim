@@ -10,54 +10,49 @@
 
 /******************************Help functions
  * begin******************************/
-template <typename T>
-std::vector<T> splitString(const std::string& str, char delim = ',') {
-    std::vector<T> result;
+template <template <typename...> class Container, typename T>
+Container<T> splitString(const std::string& str, char delim = ',') {
+    Container<T> result;
     std::stringstream ss(str);
     std::string item;
 
     while (std::getline(ss, item, delim)) {
-        result.push_back(item);
-    }
-    return result;
-}
-
-template <>
-std::vector<char> splitString(const std::string& str, char delim) {
-    std::vector<char> result;
-    std::stringstream ss(str);
-    std::string item;
-
-    while (std::getline(ss, item, delim)) {
-        result.push_back(item[0]);
+        std::istringstream itemStream(item);
+        T formattedItem;
+        itemStream >> formattedItem;  // Convert string to T
+        if constexpr (std::is_same<Container<T>, std::vector<T>>::value) {
+            result.push_back(formattedItem);
+        } else if constexpr (std::is_same<Container<T>, std::set<T>>::value) {
+            result.insert(formattedItem);
+        }
     }
     return result;
 }
 
 template <typename T>
-bool contains(const std::vector<T>& vec, const T& item) {
-    return std::find(vec.begin(), vec.end(), item) != vec.end();
+bool contains(const std::set<T>& set, const T& item) {
+    return std::find(set.begin(), set.end(), item) != set.end();
 }
 
 // flat transition function
 void flat(TransitionMap& transitionMap, const TransitionState& transition,
-          const std::vector<TapSymbol>& tsyms, TapSymbol blank) {
+          const std::set<TapSymbol>& tsyms, TapSymbol blank) {
     auto wildcardIt =
         std::find(transition.osymbols.begin(), transition.osymbols.end(), '*');
 
     if (wildcardIt != transition.osymbols.end()) {
         size_t pos = wildcardIt - transition.osymbols.begin();
 
-        for (int i = 0; i < tsyms.size(); ++i) {
+        for (auto it : tsyms) {
             // skip blank symbol
-            if (tsyms[i] == blank) {
+            if (it == blank) {
                 continue;
             }
             TransitionState ntransition = transition;
-            ntransition.osymbols[pos] = tsyms[i];
+            ntransition.osymbols[pos] = it;
             // * -> * keep symbol unchanged
             if (ntransition.nsymbols[pos] == '*') {
-                ntransition.nsymbols[pos] = tsyms[i];
+                ntransition.nsymbols[pos] = it;
             }
             flat(transitionMap, ntransition, tsyms, blank);
         }
@@ -114,16 +109,16 @@ TuringMachine TuringMachine::parse(std::string path) {
         line = trim(line);
 
         if (isPrefix(line, "#Q")) {
-            tm.states = splitString<State>(line.substr(
+            tm.states = splitString<std::set, State>(line.substr(
                 line.find('{') + 1, line.find("}") - line.find('{') - 1));
         } else if (isPrefix(line, "#S")) {
-            tm.isyms = splitString<InputSymbol>(line.substr(
+            tm.isyms = splitString<std::set, InputSymbol>(line.substr(
                 line.find('{') + 1, line.find("}") - line.find('{') - 1));
         } else if (isPrefix(line, "#G")) {
-            tm.tsyms = splitString<TapSymbol>(line.substr(
+            tm.tsyms = splitString<std::set, TapSymbol>(line.substr(
                 line.find('{') + 1, line.find("}") - line.find('{') - 1));
         } else if (isPrefix(line, "#F")) {
-            tm.fstates = splitString<State>(line.substr(
+            tm.fstates = splitString<std::set, State>(line.substr(
                 line.find('{') + 1, line.find("}") - line.find('{') - 1));
         } else if (isPrefix(line, "#q0")) {
             State istate = line.substr(line.find("=") + 1);
@@ -148,7 +143,7 @@ TuringMachine TuringMachine::parse(std::string path) {
         // transition function
         else {
             std::vector<std::string> tokens =
-                splitString<std::string>(line, ' ');
+                splitString<std::vector, std::string>(line, ' ');
             assert(tokens.size() == 5);
             State ostate = tokens[0];
             State nstate = tokens[4];

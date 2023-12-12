@@ -2,6 +2,7 @@
 
 #include <map>
 #include <ostream>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -147,13 +148,13 @@ public:
     // flat transition map
     TransitionMap transitionMap;
     // input symbol set
-    std::vector<InputSymbol> isyms;
+    std::set<InputSymbol> isyms;
     // tape symbol set
-    std::vector<TapSymbol> tsyms;
+    std::set<TapSymbol> tsyms;
     // multiple tapes
     std::vector<Tape> tapes;
     // state set
-    std::vector<State> states;
+    std::set<State> states;
     // initial state
     State istate;
     // current state
@@ -161,7 +162,7 @@ public:
     // blank symbol
     TapSymbol blank;
     // final state set
-    std::vector<State> fstates;
+    std::set<State> fstates;
     bool isaccpet = false;
     unsigned long long stepcnt = 0;
 
@@ -171,23 +172,22 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const TuringMachine& tm) {
         auto printStringSet = [&os](std::string name,
-                                    const std::vector<std::string>& set) {
+                                    const std::set<std::string>& set) {
             os << name << ": {";
             for (auto it = set.begin(); it != set.end(); ++it) {
                 os << *it;
-                if (it != set.end() - 1) {
+                if (std::next(it) != set.end()) {
                     os << ", ";
                 }
             }
             os << "}" << std::endl;
         };
 
-        auto printCharSet = [&os](std::string name,
-                                  const std::vector<char>& set) {
+        auto printCharSet = [&os](std::string name, const std::set<char>& set) {
             os << name << ": {";
             for (auto it = set.begin(); it != set.end(); ++it) {
                 os << *it;
-                if (it != set.end() - 1) {
+                if (std::next(it) != set.end()) {
                     os << ", ";
                 }
             }
