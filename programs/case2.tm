@@ -18,17 +18,21 @@
 ; start state
 0 a_ a_ ** cp
 0 b_ b_ ** cp
-0 c_ __ r* mhl1
+0 c_ __ r* cmp
 
 ; copy tape1 content to tape2
 cp a_ _a rr cp
 cp b_ _b rr cp
 cp c_ __ rl mhl1
+cp c* _* r* cmp
 
 
 ; move head1 to left
 mhl1 ** ** *l mhl1
+mhl1 _* _* *l mhl1
 mhl1 *_ *_ *r cmp
+mhl1 __ __ *r cmp
+
 
 ; compare the contents of tape1 and tape2 
 cmp aa __ rr cmp
@@ -38,6 +42,9 @@ cmp a_ __ rr reject
 cmp ba __ rr reject
 cmp b_ __ rr reject
 cmp c* _* r* reject
+cmp c_ __ r* reject
+cmp _a __ rr reject
+cmp _b __ rr reject
 cmp __ __ ** accept
 
 ; reject and write false on tape1
