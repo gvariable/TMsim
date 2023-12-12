@@ -167,7 +167,7 @@ public:
 
     static TuringMachine parse(std::string path);
 
-    void run(std::string input);
+    void run(std::string input, bool verbose = false);
 
     friend std::ostream& operator<<(std::ostream& os, const TuringMachine& tm) {
         auto printStringSet = [&os](std::string name,

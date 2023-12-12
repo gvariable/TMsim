@@ -308,18 +308,29 @@ bool TuringMachine::step() {
     return ishalt;
 }
 
-void TuringMachine::run(std::string input) {
+void TuringMachine::run(std::string input, bool verbose) {
     init(input);
 
-    do {
-        id();
-    } while (!step());
+    if (verbose) {
+        do {
+            id();
+        } while (!step());
 
-    if (isaccpet) {
-        std::cout << "ACCEPTED" << std::endl;
+        if (isaccpet) {
+            std::cout << "ACCEPTED" << std::endl;
+        } else {
+            std::cout << "UNACCEPTED" << std::endl;
+        }
+        std::cout << "Result: " << tapes[0] << std::endl;
+        std::cout << "==================== END ====================";
     } else {
-        std::cout << "UNACCEPTED" << std::endl;
+        while (!step())
+            ;
+        if (isaccpet) {
+            std::cout << "(ACCEPTED) ";
+        } else {
+            std::cout << "(UNACCEPTED) ";
+        }
+        std::cout << tapes[0] << std::endl;
     }
-    std::cout << "Result: " << tapes[0] << std::endl;
-    std::cout << "==================== END ====================";
 }
