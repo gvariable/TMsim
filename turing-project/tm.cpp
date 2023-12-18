@@ -186,7 +186,7 @@ TuringMachine TuringMachine::parse(std::string path) {
     return tm;
 }
 
-void TuringMachine::init(std::string input) {
+void TuringMachine::init(std::string input, bool verbose) {
     // initialize state
     state = istate;
 
@@ -195,9 +195,23 @@ void TuringMachine::init(std::string input) {
     tapes.resize(N);
 
     std::vector<InputSymbol> inputSymbols(input.begin(), input.end());
-    for (auto& symbol : inputSymbols) {
+    for (int i = 0; i < inputSymbols.size(); ++i) {
+        auto symbol = inputSymbols[i];
         if (!contains(isyms, symbol)) {
-            std::cerr << "illegal input string" << std::endl;
+            if (verbose) {
+                std::cerr << "Input: " << input << std::endl;
+                std::cerr << "==================== ERR ===================="
+                          << std::endl;
+                std::cerr << "error: Symbol \"" << symbol
+                          << "\" in input is not defined in the set of input symbols"
+                          << std::endl;
+                std::cerr << "Input: " << input << std::endl;
+                std::cerr << "       " << std::string(i, ' ') << "^"
+                          << std::endl;
+                std::cerr << "==================== END ====================";
+            } else {
+                std::cerr << "illegal input string" << std::endl;
+            }
             exit(1);
         }
     }
@@ -304,9 +318,12 @@ bool TuringMachine::step() {
 }
 
 void TuringMachine::run(std::string input, bool verbose) {
-    init(input);
+    init(input, verbose);
 
     if (verbose) {
+        std::cout << "Input: " << input << std::endl;
+        std::cout << "==================== RUN ===================="
+                  << std::endl;
         do {
             id();
         } while (!step());

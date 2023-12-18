@@ -228,7 +228,7 @@ public:
         return os;
     }
 
-    void init(std::string input);
+    void init(std::string input, bool verbose = false);
     bool isAccept();
     // return true if the machine is still running
     bool step();
