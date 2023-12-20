@@ -97,6 +97,7 @@ TuringMachine TuringMachine::parse(std::string path) {
         exit(1);
     }
 
+    // TODO(gpl): parsing error
     while (std::getline(ifile, line)) {
         // ignore comments and blank lines
         if (line.empty() || line[0] == ';') {
@@ -202,9 +203,10 @@ void TuringMachine::init(std::string input, bool verbose) {
                 std::cerr << "Input: " << input << std::endl;
                 std::cerr << "==================== ERR ===================="
                           << std::endl;
-                std::cerr << "error: Symbol \"" << symbol
-                          << "\" in input is not defined in the set of input symbols"
-                          << std::endl;
+                std::cerr
+                    << "error: Symbol \"" << symbol
+                    << "\" in input is not defined in the set of input symbols"
+                    << std::endl;
                 std::cerr << "Input: " << input << std::endl;
                 std::cerr << "       " << std::string(i, ' ') << "^"
                           << std::endl;
@@ -214,6 +216,10 @@ void TuringMachine::init(std::string input, bool verbose) {
             }
             exit(1);
         }
+    }
+
+    if (inputSymbols.size() == 0) {
+        inputSymbols.push_back(blank);
     }
 
     tapes[0].tape.insert(tapes[0].tape.end(), inputSymbols.begin(),

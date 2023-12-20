@@ -19,6 +19,7 @@
 0 a_ a_ ** cp
 0 b_ b_ ** cp
 0 c_ __ r* cmp
+0 __ __ ** reject
 
 ; copy tape1 content to tape2
 cp a_ _a rr cp

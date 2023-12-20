@@ -46,11 +46,6 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    if (parser.input.empty()) {
-        cerr << "no input string" << endl;
-        exit(1);
-    }
-
     auto tm = TuringMachine::parse(parser.tm);
 
     // std::cout << tm << std::endl;
